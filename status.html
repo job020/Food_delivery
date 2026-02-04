@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สถานะออเดอร์ (D2) - ระบบสั่งอาหารผ่าน QR Code</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f0f2f5; /* ปรับสีพื้นหลังให้อ่อนลงเล็กน้อยเพื่อให้การ์ดเด่นขึ้น */
+        }
+        
+        /* Kanban Column Styles */
+        .kanban-col {
+            background-color: #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            min-height: 70vh;
+        }
+        .col-header {
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Order Card Styles */
+        .order-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            border-left: 5px solid #6c757d; /* Default border color */
+            transition: all 0.2s;
+            animation: fadeIn 0.5s;
+        }
+        .order-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        /* Status Specific Colors */
+        .status-pending { border-left-color: #dc3545; }
+        .status-cooking { border-left-color: #ffc107; }
+        .status-served { border-left-color: #198754; opacity: 0.7; }
+
+        /* Badge Styles */
+        .badge-table {
+            background-color: #212529;
+            color: white;
+            font-size: 0.9em;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Navbar Active State */
+        .navbar-dark .navbar-nav .nav-link.active {
+            color: #ffc107;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-utensils me-2"></i> QR Food System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">หน้าหลัก</a></li>
+                    <li class="nav-item"><a class="nav-link" href="menu.html">เมนูอาหาร (D1)</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="#">สถานะออเดอร์ (D2)</a></li> <li class="nav-item"><a class="nav-link" href="#">รายงานยอดขาย (D3)</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-4 px-4">
+        
+        <div class="row mb-4 align-items-center">
+            <div class="col-md-6">
+                <h2 class="fw-bold"><i class="fas fa-tasks me-2"></i> สถานะออเดอร์ (Kitchen Display)</h2>
+                <p class="text-muted">Process 2: จัดการสถานะการเตรียมอาหาร (แสดงข้อมูลจาก D2)</p>
+            </div>
+            <div class="col-md-6 text-end">
+                <button class="btn btn-primary" onclick="simulateNewOrder()">
+                    <i class="fas fa-plus-circle"></i> จำลองออเดอร์เข้าใหม่ (Process 2.1)
+                </button>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            
+            <div class="col-md-4">
+                <div class="kanban-col">
+                    <div class="col-header text-danger">
+                        <span><i class="far fa-clock me-2"></i> รอคิว (Pending)</span>
+                        <span class="badge bg-danger rounded-pill" id="count-pending">0</span>
+                    </div>
+                    <div id="col-pending">
+                        </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="kanban-col">
+                    <div class="col-header text-warning">
+                        <span><i class="fas fa-fire me-2"></i> กำลังปรุง (Cooking)</span>
+                        <span class="badge bg-warning text-dark rounded-pill" id="count-cooking">0</span>
+                    </div>
+                    <div id="col-cooking">
+                        </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="kanban-col">
+                    <div class="col-header text-success">
+                        <span><i class="fas fa-check-circle me-2"></i> เสิร์ฟแล้ว (Served)</span>
+                        <span class="badge bg-success rounded-pill" id="count-served">0</span>
+                    </div>
+                    <div id="col-served">
+                        </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // 1. Mock Data: ข้อมูลใน D2
+        let orders = [
+            { id: 'ORD-101', table: 'T-05', items: ['ต้มยำกุ้ง', 'ข้าวสวย x2'], time: '12:05', status: 'pending', note: 'ไม่ใส่ผักชี' },
+            { id: 'ORD-102', table: 'T-02', items: ['ข้าวกะเพราหมูสับ'], time: '12:10', status: 'cooking', note: '-' },
+            { id: 'ORD-099', table: 'T-08', items: ['น้ำแข็งใส', 'ชาไทย'], time: '11:55', status: 'served', note: '-' }
+        ];
+
+        // 2. Render ฟังก์ชันแสดงผลการ์ด
+        function renderBoard() {
+            // Clear current content
+            document.getElementById('col-pending').innerHTML = '';
+            document.getElementById('col-cooking').innerHTML = '';
+            document.getElementById('col-served').innerHTML = '';
+
+            let counts = { pending: 0, cooking: 0, served: 0 };
+
+            orders.forEach(order => {
+                counts[order.status]++;
+                const cardHtml = createCardHtml(order);
+                document.getElementById(`col-${order.status}`).innerHTML += cardHtml;
+            });
+
+            // Update badges
+            document.getElementById('count-pending').innerText = counts.pending;
+            document.getElementById('count-cooking').innerText = counts.cooking;
+            document.getElementById('count-served').innerText = counts.served;
+        }
+
+        // Helper: สร้าง HTML ของแต่ละการ์ด
+        function createCardHtml(order) {
+            let actionBtn = '';
+            let cardClass = `status-${order.status}`;
+            
+            // ปุ่ม Action ตามสถานะ (Transition Logic)
+            if (order.status === 'pending') {
+                actionBtn = `<button class="btn btn-warning btn-sm w-100 mt-2" onclick="updateStatus('${order.id}', 'cooking')">รับออเดอร์ / เริ่มทำ</button>`;
+            } else if (order.status === 'cooking') {
+                actionBtn = `<button class="btn btn-success btn-sm w-100 mt-2" onclick="updateStatus('${order.id}', 'served')">ปรุงเสร็จ / เสิร์ฟ</button>`;
+            } else {
+                actionBtn = `<div class="text-center text-muted small mt-2"><i class="fas fa-check"></i> เรียบร้อยแล้ว</div>`;
+            }
+
+            return `
+                <div class="card order-card ${cardClass} p-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge badge-table">โต๊ะ ${order.table}</span>
+                        <small class="text-muted"><i class="far fa-clock"></i> ${order.time}</small>
+                    </div>
+                    <h6 class="fw-bold mb-1">#${order.id}</h6>
+                    <ul class="list-unstyled mb-2 small text-secondary">
+                        ${order.items.map(item => `<li>- ${item}</li>`).join('')}
+                    </ul>
+                    ${order.note !== '-' ? `<div class="alert alert-light border p-1 mb-2 small text-danger"><i class="fas fa-exclamation-circle"></i> ${order.note}</div>` : ''}
+                    ${actionBtn}
+                </div>
+            `;
+        }
+
+        // 3. ฟังก์ชันอัปเดตสถานะ (จำลอง Process 2.3 - 2.4)
+        function updateStatus(orderId, newStatus) {
+            const orderIndex = orders.findIndex(o => o.id === orderId);
+            if (orderIndex !== -1) {
+                orders[orderIndex].status = newStatus;
+                
+                // Sound effect or notification simulation
+                const statusText = newStatus === 'cooking' ? 'กำลังปรุงอาหาร' : 'เสิร์ฟเรียบร้อย';
+                Swal.fire({
+                    position: 'top-end',
+                    icon: 'success',
+                    title: `อัปเดตสถานะ: ${statusText}`,
+                    showConfirmButton: false,
+                    timer: 1500,
+                    toast: true
+                });
+
+                renderBoard();
+            }
+        }
+
+        // 4. ฟังก์ชันจำลองออเดอร์เข้าใหม่ (Simulation)
+        function simulateNewOrder() {
+            const tables = ['T-01', 'T-03', 'T-09', 'T-12'];
+            const menus = [['ข้าวผัดปู', 'ต้มจืด'], ['สเต็กเนื้อ', 'สลัดผัก'], ['สปาเก็ตตี้', 'โค้ก']];
+            
+            const randomTable = tables[Math.floor(Math.random() * tables.length)];
+            const randomMenu = menus[Math.floor(Math.random() * menus.length)];
+            const newId = 'ORD-' + Math.floor(Math.random() * 1000 + 100);
+
+            const newOrder = {
+                id: newId,
+                table: randomTable,
+                items: randomMenu,
+                time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
+                status: 'pending',
+                note: '-'
+            };
+
+            orders.unshift(newOrder); // Add to top
+            renderBoard();
+
+            Swal.fire({
+                title: 'มีออเดอร์ใหม่!',
+                text: `โต๊ะ ${randomTable} สั่งอาหารเข้ามาแล้ว`,
+                icon: 'info',
+                confirmButtonText: 'ตกลง'
+            });
+        }
+
+        // Initial Render
+        renderBoard();
+
+    </script>
+</body>
+</html>
