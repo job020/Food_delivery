@@ -3,494 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Dining System (Luxury Demo)</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>ระบบสั่งอาหารผ่าน QR Code - Dashboard</title>
     
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
     <style>
-        /* --- Luxury Theme Palette & Fonts --- */
-        :root {
-            --color-primary-dark: #2C3E50; /* สีเข้มหลัก (หัวข้อ, navbar) */
-            --color-accent-gold: #C5A880;  /* สีทองด้านหรูหรา */
-            --color-bg-light: #FDFBF9;     /* สีพื้นหลังขาวนวล */
-            --color-text-muted: #6c757d;
-        }
-
         body {
-            font-family: 'Sarabun', sans-serif;
-            background-color: var(--color-bg-light);
-            color: var(--color-primary-dark);
+            font-family: 'Sarabun', sans-serif; /* แนะนำให้ใช้ Google Font ที่รองรับภาษาไทย */
+            background-color: #f8f9fa;
         }
-
-        h1, h2, h3, h4, h5, .navbar-brand {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-        }
-
-        /* --- Custom Elements --- */
-        .navbar-custom {
-            background-color: var(--color-primary-dark);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border-bottom: 3px solid var(--color-accent-gold);
-        }
-
-        .text-gold { color: var(--color-accent-gold) !important; }
-        .bg-gold { background-color: var(--color-accent-gold) !important; color: white; }
-
-        .btn-gold {
-            background: linear-gradient(45deg, #C5A880, #D4AF37);
-            border: none;
-            color: white;
-            font-weight: 600;
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
+            cursor: pointer;
         }
-        .btn-gold:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(197, 168, 128, 0.4);
-            color: white;
+        .status-cooking {
+            background-color: #ffc107; /* สีเหลือง สำหรับกำลังทำ */
+            color: #000;
         }
-
-        .luxury-card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-            background: white;
-            transition: transform 0.3s;
-            overflow: hidden;
+        .status-served {
+            background-color: #198754; /* สีเขียว สำหรับเสิร์ฟแล้ว */
+            color: #fff;
         }
-        .luxury-card:hover { transform: translateY(-5px); }
-
-        /* --- Tabs Styling --- */
-        .nav-pills .nav-link {
-            color: var(--color-primary-dark);
-            border-radius: 30px;
-            padding: 10px 25px;
-            font-weight: 600;
-            background-color: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            margin-right: 10px;
-            border: 1px solid #eee;
+        .status-pending {
+            background-color: #dc3545; /* สีแดง สำหรับรอคิว */
+            color: #fff;
         }
-        .nav-pills .nav-link.active {
-            background-color: var(--color-primary-dark);
-            color: var(--color-accent-gold);
-            border-color: var(--color-primary-dark);
-        }
-        .nav-pills .nav-link i { margin-right: 8px; }
-
-        /* --- Kitchen Pipeline (Infographic Style) --- */
-        .kitchen-pipeline-col {
-            background-color: #f4f7f6;
-            border-radius: 15px;
-            padding: 20px;
-            min-height: 400px;
-            border-top: 5px solid #ccc;
-        }
-        .pipeline-header {
-            text-align: center;
-            font-weight: 700;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .col-new { border-color: var(--color-primary-dark); }
-        .col-cooking { border-color: var(--color-accent-gold); }
-        .col-ready { border-color: #28a745; }
-        
-        .order-card {
-            background: white;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-            border-left: 4px solid var(--color-accent-gold);
-            position: relative;
-        }
-        .order-card-id { font-size: 0.85rem; color: var(--color-text-muted); }
-        .order-flow-arrow {
-             display: none; /* ซ่อนในมือถือ */
-        }
-        @media (min-width: 768px) {
-             .order-flow-arrow {
-                display: block;
-                position: absolute;
-                right: -25px;
-                top: 50%;
-                transform: translateY(-50%);
-                font-size: 2rem;
-                color: #ddd;
-                z-index: 1;
-            }
-        }
-
     </style>
 </head>
 <body>
 
-    <nav class="navbar navbar-dark navbar-custom mb-5 py-3">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="#">
-                <i class="fas fa-utensils text-gold me-3 fa-lg"></i>
-                <div>
-                    <div>THE GOURMET FLOW</div>
-                    <div style="font-size: 0.8rem; font-family: 'Sarabun'; font-weight: 300; color: #ccc;">ระบบสั่งอาหารอัจฉริยะ (DFD Simulation)</div>
-                </div>
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-utensils me-2"></i> QR Food System
             </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link active" href="#">หน้าหลัก</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">เมนูอาหาร (D1)</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">สถานะออเดอร์ (D2)</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">รายงานยอดขาย (D3)</a></li>
+                </ul>
+            </div>
         </div>
     </nav>
 
-    <div class="container pb-5">
-        <ul class="nav nav-pills mb-5 justify-content-center" id="roleTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="customer-tab" data-bs-toggle="pill" data-bs-target="#customer" type="button">
-                    <i class="fas fa-qrcode"></i> ลูกค้า (Ordering)
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="kitchen-tab" data-bs-toggle="pill" data-bs-target="#kitchen" type="button">
-                    <i class="fas fa-fire-burner"></i> ฝ่ายครัว (Process Flow)
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="manager-tab" data-bs-toggle="pill" data-bs-target="#manager" type="button">
-                    <i class="fas fa-chart-pie"></i> ผู้จัดการ (Dashboard)
-                </button>
-            </li>
-        </ul>
-
-        <div class="tab-content" id="myTabContent">
-            
-            <div class="tab-pane fade show active" id="customer" role="tabpanel">
-                <div class="row g-4">
-                    <div class="col-lg-8">
-                        <h4 class="mb-4 text-primary-dark"><i class="far fa-newspaper me-2"></i>Signature Menu</h4>
-                        <div class="row g-4" id="menu-container">
-                            </div>
-                    </div>
-                    <div class="col-lg-4">
-                        <div class="luxury-card sticky-top" style="top: 100px; z-index: 1;">
-                            <div class="card-header bg-white border-0 pt-4 pb-2 text-center">
-                                <h5 class="mb-0"><i class="fas fa-receipt text-gold me-2"></i> รายการสั่งซื้อของคุณ</h5>
-                            </div>
-                            <div class="card-body">
-                                <ul id="cart-list" class="list-group list-group-flush mb-4">
-                                    <li class="list-group-item text-muted text-center border-0 fst-italic py-4">ยังไม่มีรายการอาหาร</li>
-                                </ul>
-                                <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded-3">
-                                    <span class="h6 mb-0 text-muted">ยอดรวมสุทธิ</span>
-                                    <span id="total-price" class="h4 mb-0 text-gold fw-bold">0 ฿</span>
-                                </div>
-                                <button onclick="confirmOrder()" class="btn btn-gold w-100 py-3 rounded-pill" id="btn-order" disabled>
-                                    <i class="fas fa-check-circle me-2"></i> ยืนยันการสั่งซื้อ (Confirm)
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <div class="container py-5">
+        
+        <div class="row mb-4 text-center">
+            <div class="col-12">
+                <h1 class="display-5 fw-bold">ยินดีต้อนรับสู่ระบบบริหารจัดการร้านอาหาร</h1>
+                <p class="lead text-muted">เลือกเมนูการทำงานตามบทบาทหน้าที่ (จำลองตาม DFD Level 1)</p>
             </div>
-
-            <div class="tab-pane fade" id="kitchen" role="tabpanel">
-                <div class="text-center mb-5">
-                    <h3 class="text-primary-dark">KITCHEN WORKFLOW</h3>
-                    <p class="text-muted">ภาพรวมกระบวนการทำงานจาก D2 (ข้อมูลการสั่งซื้อ)</p>
-                </div>
-                
-                <div class="row g-4">
-                    <div class="col-md-4 position-relative">
-                         <i class="fas fa-chevron-right order-flow-arrow d-none d-md-block"></i>
-                        <div class="kitchen-pipeline-col col-new">
-                            <div class="pipeline-header text-primary-dark">
-                                <i class="fas fa-bell me-2"></i>ออเดอร์ใหม่ (New)
-                            </div>
-                            <div id="kitchen-new-orders">
-                                </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4 position-relative">
-                        <i class="fas fa-chevron-right order-flow-arrow d-none d-md-block"></i>
-                        <div class="kitchen-pipeline-col col-cooking">
-                            <div class="pipeline-header text-gold">
-                                <i class="fas fa-fire me-2 fa-shake"></i>กำลังปรุง (Cooking)
-                            </div>
-                            <div id="kitchen-cooking-orders">
-                                </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="kitchen-pipeline-col col-ready">
-                            <div class="pipeline-header text-success">
-                                <i class="fas fa-check-double me-2"></i>พร้อมเสิร์ฟ (Ready)
-                            </div>
-                            <div id="kitchen-ready-orders">
-                                </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="tab-pane fade" id="manager" role="tabpanel">
-                <h3 class="mb-4 text-primary-dark text-center">BUSINESS OVERVIEW</h3>
-                <div class="row g-4 justify-content-center">
-                    <div class="col-md-5">
-                        <div class="luxury-card h-100 text-center p-5 border-top border-4 border-gold">
-                            <div class="mb-4">
-                                <i class="fas fa-coins fa-4x text-gold"></i>
-                            </div>
-                            <h5 class="text-muted text-uppercase ls-1">สรุปยอดขายวันนี้ (Revenue)</h5>
-                            <h2 class="display-3 fw-bold text-primary-dark my-3" id="manager-total">0</h2>
-                            <p class="text-muted">บาท (THB)</p>
-                            <div class="badge bg-gold fw-normal px-3 py-2 rounded-pill mt-2">D3 ข้อมูลการชำระเงิน</div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-5">
-                        <div class="luxury-card h-100 p-4 border-top border-4 border-primary-dark">
-                            <div class="d-flex align-items-center mb-4">
-                                <div class="bg-primary-dark text-white rounded-circle p-3 me-3">
-                                    <i class="fas fa-box-open fa-2x"></i>
-                                </div>
-                                <div>
-                                    <h5 class="mb-1 fw-bold">สถานะสต๊อกสินค้า</h5>
-                                    <small class="text-muted">D1 ข้อมูลเมนูอาหาร</small>
-                                </div>
-                            </div>
-                            <ul class="list-group list-group-flush" id="stock-list">
-                                </ul>
-                            <button class="btn btn-outline-dark w-100 mt-4 rounded-pill" onclick="alert('Simulation: Add Menu Menu')">
-                                <i class="fas fa-plus me-2"></i> เพิ่มเมนูใหม่
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
         </div>
+
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="card h-100 card-hover border-primary">
+                    <div class="card-body text-center">
+                        <div class="display-4 text-primary mb-3"><i class="fas fa-qrcode"></i></div>
+                        <h4 class="card-title">สำหรับลูกค้า</h4>
+                        <p class="card-text">เข้าสู่หน้าเมนูอาหาร สั่งอาหาร และชำระเงิน</p>
+                        <hr>
+                        <p class="small text-muted">Process 1: ระบบสั่งอาหาร</p>
+                        <button class="btn btn-outline-primary w-100">จำลองการสแกน QR</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 card-hover border-warning">
+                    <div class="card-body text-center">
+                        <div class="display-4 text-warning mb-3"><i class="fas fa-fire-alt"></i></div>
+                        <h4 class="card-title">สำหรับฝ่ายครัว</h4>
+                        <p class="card-text">รับออเดอร์ อัปเดตสถานะการเตรียมอาหาร (Cooking/Done)</p>
+                        <hr>
+                        <p class="small text-muted">Process 2: จัดการสถานะ</p>
+                        <button class="btn btn-outline-warning w-100 text-dark">ดูรายการออเดอร์เข้าใหม่</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 card-hover border-success">
+                    <div class="card-body text-center">
+                        <div class="display-4 text-success mb-3"><i class="fas fa-chart-line"></i></div>
+                        <h4 class="card-title">สำหรับผู้จัดการ</h4>
+                        <p class="card-text">จัดการเมนู สต๊อกสินค้า และดูรายงานยอดขายรายวัน</p>
+                        <hr>
+                        <p class="small text-muted">Process 3 & 4: การเงินและสต๊อก</p>
+                        <button class="btn btn-outline-success w-100">เข้าสู่ระบบหลังบ้าน</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-list-alt me-2"></i> รายการสั่งซื้อล่าสุด (Mockup Data from D2)</h5>
+                        <span class="badge bg-secondary">Updated: Just now</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>รายการอาหาร</th>
+                                        <th>โต๊ะที่</th>
+                                        <th>ราคารวม</th>
+                                        <th>สถานะ (Process 2)</th>
+                                        <th>จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orderTableBody">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
+    <footer class="bg-dark text-white text-center py-3 mt-5">
+        <div class="container">
+            <p class="mb-0">QR Code Food Ordering System Diagram Implementation</p>
+        </div>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
-        // จำลองฐานข้อมูล D1
-        const menuDB = [
-            { id: 1, name: 'Truffle Pasta', description: 'พาสต้าซอสทรัฟเฟิลเข้มข้น', price: 350, img: 'https://placehold.co/400x300/2C3E50/C5A880?text=Truffle+Pasta' },
-            { id: 2, name: 'Wagyu Steak Don', description: 'ข้าวหน้าเนื้อวากิว A4 ย่างถ่าน', price: 580, img: 'https://placehold.co/400x300/2C3E50/C5A880?text=Wagyu+Don' },
-            { id: 3, name: 'Lobster Bisque', description: 'ซุปข้นกุ้งล็อบสเตอร์สไตล์ฝรั่งเศส', price: 290, img: 'https://placehold.co/400x300/2C3E50/C5A880?text=Lobster+Soup' },
-            { id: 4, name: 'Signature Mocktail', description: 'เครื่องดื่มซิกเนเจอร์ (Yuzu & Honey)', price: 180, img: 'https://placehold.co/400x300/2C3E50/C5A880?text=Yuzu+Mocktail' }
+        // ข้อมูลจำลอง (Mock Data) ที่สะท้อนโครงสร้าง D2 ข้อมูลการสั่งซื้อ
+        const mockOrders = [
+            { id: 'ORD-001', items: 'ข้าวกะเพราหมูสับ, ไข่ดาว', table: 'T-01', price: 65, status: 'served' },
+            { id: 'ORD-002', items: 'สุกี้แห้งทะเล', table: 'T-04', price: 80, status: 'cooking' },
+            { id: 'ORD-003', items: 'ข้าวผัดอเมริกัน, น้ำเปล่า', table: 'T-02', price: 120, status: 'pending' },
+            { id: 'ORD-004', items: 'ต้มยำกุ้งน้ำข้น (ถ้วย)', table: 'T-05', price: 150, status: 'pending' }
         ];
 
-        let cart = [];
-        let orders = [];
-        let totalRevenue = 0;
+        const tableBody = document.getElementById('orderTableBody');
 
-        // 1. Render Menu (Customer View - Luxury Cards)
-        function renderMenu() {
-            const container = document.getElementById('menu-container');
-            const stockList = document.getElementById('stock-list');
-            
-            container.innerHTML = '';
-            stockList.innerHTML = '';
+        // ฟังก์ชัน Render ตาราง
+        function renderTable() {
+            let html = '';
+            mockOrders.forEach(order => {
+                let statusBadge = '';
+                let actionBtn = '';
 
-            menuDB.forEach(item => {
-                container.innerHTML += `
-                    <div class="col-md-6">
-                        <div class="luxury-card d-flex h-100">
-                            <img src="${item.img}" class="img-fluid rounded-start" style="width: 160px; object-fit: cover;" alt="${item.name}">
-                            <div class="p-4 d-flex flex-column justify-content-between flex-grow-1">
-                                <div>
-                                    <h5 class="fw-bold mb-1">${item.name}</h5>
-                                    <p class="text-muted small mb-3">${item.description}</p>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center mt-3">
-                                    <h4 class="text-gold mb-0">${item.price} ฿</h4>
-                                    <button class="btn btn-outline-dark btn-sm rounded-pill px-3" onclick="addToCart(${item.id})">
-                                        <i class="fas fa-plus me-1"></i> เพิ่ม
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                // Logic การแสดงผลสถานะตาม Diagram Process 2 (จัดการสถานะ)
+                if (order.status === 'pending') {
+                    statusBadge = '<span class="badge status-pending">รอคิวปรุง</span>';
+                    actionBtn = '<button class="btn btn-sm btn-primary">รับออเดอร์</button>';
+                } else if (order.status === 'cooking') {
+                    statusBadge = '<span class="badge status-cooking">กำลังปรุง</span>';
+                    actionBtn = '<button class="btn btn-sm btn-success">เสิร์ฟแล้ว</button>';
+                } else if (order.status === 'served') {
+                    statusBadge = '<span class="badge status-served">เสิร์ฟแล้ว</span>';
+                    actionBtn = '<button class="btn btn-sm btn-secondary" disabled>เสร็จสิ้น</button>';
+                }
 
-                stockList.innerHTML += `
-                    <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent border-bottom py-3">
-                        <span class="fw-semibold"><i class="fas fa-circle text-success fa-xs me-2"></i>${item.name}</span>
-                        <span class="badge bg-light text-dark border">Available</span>
-                    </li>
+                html += `
+                    <tr>
+                        <td><strong>#${order.id}</strong></td>
+                        <td>${order.items}</td>
+                        <td>${order.table}</td>
+                        <td>${order.price} บาท</td>
+                        <td>${statusBadge}</td>
+                        <td>${actionBtn}</td>
+                    </tr>
                 `;
             });
+            tableBody.innerHTML = html;
         }
 
-        // 2. Cart Logic (Receipt Style)
-        function addToCart(id) {
-            const item = menuDB.find(p => p.id === id);
-            cart.push(item);
-            updateCartUI();
-        }
-
-        function updateCartUI() {
-            const list = document.getElementById('cart-list');
-            const totalEl = document.getElementById('total-price');
-            const btn = document.getElementById('btn-order');
-
-            if(cart.length === 0) {
-                list.innerHTML = '<li class="list-group-item text-muted text-center border-0 fst-italic py-4">ยังไม่มีรายการอาหาร</li>';
-                btn.disabled = true;
-                totalEl.innerText = '0 ฿';
-                return;
-            }
-
-            list.innerHTML = cart.map((item, index) => `
-                <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-0 py-3 border-bottom border-light">
-                    <div>
-                        <span class="fw-semibold">${item.name}</span>
-                        <div class="text-muted small">${item.price} ฿</div>
-                    </div>
-                    <button class="btn btn-link text-danger p-0" onclick="removeFromCart(${index})">
-                        <i class="far fa-trash-alt"></i>
-                    </button>
-                </li>
-            `).join('');
-
-            const total = cart.reduce((sum, item) => sum + item.price, 0);
-            totalEl.innerText = `${total.toLocaleString()} ฿`;
-            btn.disabled = false;
-        }
-
-        function removeFromCart(index) {
-            cart.splice(index, 1);
-            updateCartUI();
-        }
-
-        // 3. Confirm Order
-        function confirmOrder() {
-            if(cart.length === 0) return;
-                const orderId = 'ORD-' + String(Math.floor(Math.random() * 10000)).padStart(4, '0');
-                const orderTotal = cart.reduce((sum, item) => sum + item.price, 0);
-                
-                const newOrder = {
-                    id: orderId,
-                    items: [...cart],
-                    total: orderTotal,
-                    status: 'New', // สถานะเริ่มต้น
-                    timestamp: new Date().toLocaleTimeString()
-                };
-                
-                orders.push(newOrder);
-                cart = [];
-                updateCartUI();
-                
-                // แสดง Modal หรือ Alert แบบสวยงาม (ในที่นี้ใช้ alert ธรรมดาไปก่อน)
-                alert(`✨ ขอบคุณที่ใช้บริการ \nOrder ID: ${orderId} \nระบบได้ส่งรายการไปยังครัวแล้ว`);
-                
-                renderKitchen();
-                // สลับไปหน้าครัวอัตโนมัติเพื่อให้เห็นการเปลี่ยนแปลง
-                const kitchenTabBtn = document.querySelector('#kitchen-tab');
-                const tab = new bootstrap.Tab(kitchenTabBtn);
-                tab.show();
-        }
-
-        // 4. Kitchen Management (Infographic Pipeline Logic) - ** ส่วนที่แก้ไขเยอะที่สุด **
-        function renderKitchen() {
-            const newContainer = document.getElementById('kitchen-new-orders');
-            const cookingContainer = document.getElementById('kitchen-cooking-orders');
-            const readyContainer = document.getElementById('kitchen-ready-orders');
-
-            // เคลียร์ข้อมูลเก่า
-            newContainer.innerHTML = '';
-            cookingContainer.innerHTML = '';
-            readyContainer.innerHTML = '';
-
-            if(orders.length === 0) {
-                newContainer.innerHTML = '<p class="text-muted text-center mt-4">ไม่มีออเดอร์ค้าง</p>';
-            }
-
-            orders.forEach((order, index) => {
-                const itemNames = order.items.map(i => `<li class="small">${i.name}</li>`).join('');
-                const cardHtml = `
-                    <div class="order-card animate__animated animate__fadeIn">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="order-card-id fw-bold text-primary-dark">#${order.id}</span>
-                            <span class="small text-muted"><i class="far fa-clock me-1"></i>${order.timestamp}</span>
-                        </div>
-                        <ul class="list-unstyled mb-3 ps-2 border-start">
-                            ${itemNames}
-                        </ul>
-                        ${getActionButtons(order.status, index)}
-                    </div>
-                `;
-
-                // แยกการ์ดไปตาม Pipeline
-                if(order.status === 'New') {
-                    newContainer.innerHTML += cardHtml;
-                } else if (order.status === 'Cooking') {
-                    cookingContainer.innerHTML += cardHtml;
-                } else if (order.status === 'Ready') {
-                    readyContainer.innerHTML += cardHtml;
-                }
-            });
-        }
-
-        // Helper function สร้างปุ่มตามสถานะ
-        function getActionButtons(status, index) {
-            if(status === 'New') {
-                return `<button class="btn btn-primary btn-sm w-100 rounded-pill" onclick="updateStatus(${index}, 'Cooking')">
-                            <i class="fas fa-fire me-1"></i> เริ่มปรุงอาหาร
-                        </button>`;
-            } else if (status === 'Cooking') {
-                return `<button class="btn btn-gold btn-sm w-100 rounded-pill" onclick="updateStatus(${index}, 'Ready')">
-                            <i class="fas fa-check me-1"></i> ปรุงเสร็จแล้ว
-                        </button>`;
-            } else if (status === 'Ready') {
-                 return `<button class="btn btn-success btn-sm w-100 rounded-pill" onclick="finishOrder(${index})">
-                            <i class="fas fa-hand-holding-dollar me-1"></i> รับเงิน & ปิดงาน
-                        </button>`;
-            }
-            return '';
-        }
-
-        function updateStatus(index, newStatus) {
-            // เพิ่มเอฟเฟกต์เล็กน้อยก่อนเปลี่ยนสถานะ
-            orders[index].status = newStatus;
-            renderKitchen();
-        }
-
-        // 5. Payment & Revenue
-        function finishOrder(index) {
-            const order = orders[index];
-            totalRevenue += order.total;
-            
-            // อัปเดต Dashboard ผู้จัดการด้วย Animation ตัวเลข (แบบง่าย)
-            animateValue("manager-total", totalRevenue - order.total, totalRevenue, 1000);
-            
-            // ลบออเดอร์
-            orders.splice(index, 1);
-            renderKitchen();
-        }
-
-        // ฟังก์ชันเสริมสำหรับ Animation ตัวเลขรายได้
-        function animateValue(id, start, end, duration) {
-            let range = end - start;
-            let current = start;
-            let increment = end > start ? Math.ceil(range / (duration / 20)) : 0;
-            let stepTime = 20;
-            let obj = document.getElementById(id);
-            let timer = setInterval(function() {
-                current += increment;
-                if (current >= end) {
-                    current = end;
-                    clearInterval(timer);
-                }
-                obj.innerHTML = current.toLocaleString();
-            }, stepTime);
-        }
-
-        // Initialize
-        renderMenu();
-        renderKitchen();
-
+        // เรียกใช้งานฟังก์ชัน
+        renderTable();
     </script>
 </body>
 </html>
